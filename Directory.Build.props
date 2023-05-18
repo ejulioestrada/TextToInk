@@ -1,0 +1,7 @@
+<Project>
+ <PropertyGroup>
+	<LangVersion>latest</LangVersion>
+	<ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+	<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+ </PropertyGroup>
+</Project>

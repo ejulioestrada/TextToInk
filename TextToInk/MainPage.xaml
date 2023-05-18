@@ -1,0 +1,33 @@
+﻿<Page
+    x:Class="TextToInk.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:TextToInk"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="10,10"/>
+        </Style>
+    </Page.Resources>
+    <Grid Background="WhiteSmoke">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Padding="5" Orientation="Horizontal" Grid.Row="0" Background="{ThemeResource AppBarBackgroundThemeBrush}">
+            <TextBox x:Name="_textBox" Header="Text:" Width="200" Text="Convert this text to ink"/>
+            <TextBox x:Name="_fontNameBox" Header="Font:" Width="200" Text="Ink Free"/>
+            <TextBox x:Name="_fontSizeBox" Header="Size:" Width="80" Text="48"/>
+            <Button Margin="6,20,6,0" Click="Process_Click">Covert to ink</Button>
+            <InkToolbar Margin="12,0" TargetInkCanvas="{x:Bind _inkCanvas}" />
+        </StackPanel>
+        <Grid Grid.Row="1">
+            <Canvas x:Name="_canvas" Grid.Row="1" />
+            <InkCanvas x:Name="_inkCanvas" Grid.Row="1" />
+        </Grid>
+    </Grid>
+</Page>
