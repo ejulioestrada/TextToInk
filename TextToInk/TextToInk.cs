@@ -22,82 +22,11 @@ namespace TextToInk
             };
             attrs ??= new();
             var size = Vector2.Zero;
-            var textToStrokesRenderer = new TextToStrokesRenderer(attrs);
             using var textLayout = new CanvasTextLayout(CanvasDevice.GetSharedDevice(), text, textFormat, size.X, size.Y);
-            textLayout.DrawToTextRenderer(textToStrokesRenderer, 10, 10);
-            return textToStrokesRenderer.Strokes;
-        }
-
-        private class TextToStrokesRenderer : ICanvasTextRenderer
-        {
-            public IEnumerable<InkStroke> Strokes => _receiver.Strokes;
-
-            public TextToStrokesRenderer(InkDrawingAttributes attrs)
-            {
-                _receiver = new(attrs);
-            }
-
-            public void DrawGlyphRun(
-                Vector2 point,
-                CanvasFontFace fontFace,
-                float fontSize,
-                CanvasGlyph[] glyphs,
-                bool isSideways,
-                uint bidiLevel,
-                object brush,
-                CanvasTextMeasuringMode measuringMode,
-                string localeName,
-                string textString,
-                int[] clusterMapIndices,
-                uint characterIndex,
-                CanvasGlyphOrientation glyphOrientation)
-            {
-                using var geometry = CanvasGeometry.CreateGlyphRun(null, point, fontFace, fontSize, glyphs, isSideways, bidiLevel, measuringMode, glyphOrientation)
-                                                   .Simplify(CanvasGeometrySimplification.Lines);
-                geometry.SendPathTo(_receiver);
-            }
-
-            public void DrawStrikethrough(Vector2 point,
-                                          float strikethroughWidth,
-                                          float strikethroughThickness,
-                                          float strikethroughOffset,
-                                          CanvasTextDirection textDirection,
-                                          object brush,
-                                          CanvasTextMeasuringMode textMeasuringMode,
-                                          string localeName,
-                                          CanvasGlyphOrientation glyphOrientation)
-            {
-                throw new NotImplementedException();
-            }
-            public void DrawUnderline(Vector2 point,
-                                      float underlineWidth,
-                                      float underlineThickness,
-                                      float underlineOffset,
-                                      float runHeight,
-                                      CanvasTextDirection textDirection,
-                                      object brush,
-                                      CanvasTextMeasuringMode textMeasuringMode,
-                                      string localeName,
-                                      CanvasGlyphOrientation glyphOrientation)
-            {
-                throw new NotImplementedException();
-            }
-            public void DrawInlineObject(Vector2 point,
-                                         ICanvasTextInlineObject inlineObject,
-                                         bool isSideways,
-                                         bool isRightToLeft,
-                                         object brush,
-                                         CanvasGlyphOrientation glyphOrientation)
-            {
-                throw new NotImplementedException();
-            }
-            public float Dpi => throw new NotImplementedException();
-            public bool PixelSnappingDisabled => true;
-            public Matrix3x2 Transform => throw new NotImplementedException();
-
-            // Private implementation
-            //
-            private readonly CanvasPathToStrokesReceiver _receiver;
+            var geometry = CanvasGeometry.CreateText(textLayout).Simplify(CanvasGeometrySimplification.Lines);
+            var receiver = new CanvasPathToStrokesReceiver(attrs);
+            geometry.SendPathTo(receiver);
+            return receiver.Strokes;
         }
 
         private class CanvasPathToStrokesReceiver : ICanvasPathReceiver
