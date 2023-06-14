@@ -1,7 +1,17 @@
-﻿using Windows.UI.Xaml;
+﻿#nullable enable
+using Microsoft.Graphics.Canvas.UI.Xaml;
+using Microsoft.Graphics.Canvas.UI;
+using Windows.Foundation;
+using Windows.UI.Input.Inking;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
+using System.Numerics;
+using System.Collections.Generic;
+using Windows.UI;
+using System;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Linq;
 
 namespace TextToInk
 {
@@ -13,19 +23,51 @@ namespace TextToInk
         public MainPage()
         {
             this.InitializeComponent();
-            Process();
+            Process(_inkCanvas.InkPresenter);
             _textBox.SelectAll();
         }
 
+        private IEnumerable<Point>? _points = null;
+        private TimeSpan _interPointDelay = TimeSpan.FromMilliseconds(100);
+
         private void Process_Click(object sender, RoutedEventArgs e)
         {
-            Process();
+            Process(_inkCanvas.InkPresenter);
         }
 
-        private void Process()
+        private async void Process(InkPresenter presenter)
         {
-            _inkCanvas.InkPresenter.StrokeContainer.Clear();
-            _inkCanvas.InkPresenter.StrokeContainer.AddStrokes(TextToInk.CreateStrokes(_textBox.Text, _fontNameBox.Text, int.Parse(_fontSizeBox.Text)));
+            presenter.StrokeContainer.Clear();
+            var attrs = presenter.CopyDefaultDrawingAttributes();
+            var (strokes, points) = TextToInk.CreateStrokes(_textBox.Text, _fontNameBox.Text, int.Parse(_fontSizeBox.Text), attrs);
+            presenter.StrokeContainer.AddStrokes(strokes);
+            var pts = points.ToList();
+            for (var i = 0; i < pts.Count; i++)
+            {
+                _points = pts.Take(i + 1);
+                _canvas2d.Invalidate();
+                await Task.Delay(_interPointDelay);
+            }
+        }
+
+        private void OnCreateResources(CanvasControl sender, CanvasCreateResourcesEventArgs args)
+        {
+        }
+
+        private void OnDraw(CanvasControl sender, CanvasDrawEventArgs args)
+        {
+            if (_points == null) return;
+            using var ds = args.DrawingSession;
+            ds.Transform = Matrix3x2.CreateScale(3f);
+            var pts = _points.Select(p => p.ToVector2()).ToList();
+            for (var i = 0; i < pts.Count; i++)
+            {
+                ds.DrawCircle(pts[i], .1f, Colors.Purple);
+                if (i > 0)
+                {
+                    ds.DrawLine(pts[i - 1], pts[i], Colors.LightGray, .25f);
+                }
+            }
         }
     }
 }

@@ -12,7 +12,8 @@ namespace TextToInk
 {
     internal class TextToInk
     {
-        public static IEnumerable<InkStroke> CreateStrokes(string text, string fontFamily = "Ink Free", int fontSize = 36, InkDrawingAttributes? attrs = null)
+        public static (IEnumerable<InkStroke> strokes, IEnumerable<Point> points) CreateStrokes(string text, string fontFamily = "Ink Free", int fontSize = 36, InkDrawingAttributes? attrs = null,
+                                                                                                Action<Point, IEnumerable<Point>>? pointCallback = null)
         {
             using var textFormat = new CanvasTextFormat
             {
@@ -24,23 +25,25 @@ namespace TextToInk
             var size = Vector2.Zero;
             using var textLayout = new CanvasTextLayout(CanvasDevice.GetSharedDevice(), text, textFormat, size.X, size.Y);
             var geometry = CanvasGeometry.CreateText(textLayout).Simplify(CanvasGeometrySimplification.Lines);
-            var receiver = new CanvasPathToStrokesReceiver(attrs);
+            var receiver = new CanvasPathToStrokesReceiver(attrs, pointCallback);
             geometry.SendPathTo(receiver);
-            return receiver.Strokes;
+            return (receiver.Strokes, receiver.Points);
         }
 
         private class CanvasPathToStrokesReceiver : ICanvasPathReceiver
         {
             public List<InkStroke> Strokes { get; } = new();
+            public List<Point> Points { get; } = new();
 
-            public CanvasPathToStrokesReceiver(InkDrawingAttributes attrs)
+            public CanvasPathToStrokesReceiver(InkDrawingAttributes attrs, Action<Point, IEnumerable<Point>>? pointCallback = null)
             {
                 _attrs = attrs;
+                _pointCallback = pointCallback;
             }
 
             public void BeginFigure(Vector2 startPoint, CanvasFigureFill figureFill)
             {
-                _points.Clear();
+                _figurePoints.Clear();
                 AddPoint(startPoint);
             }
 
@@ -56,15 +59,14 @@ namespace TextToInk
             {
                 if (figureLoop == CanvasFigureLoop.Closed)
                 {
-                    AddPoint(_points[0].ToVector2());
+                    AddPoint(_figurePoints[0].ToVector2());
                 }
 
                 var builder = new InkStrokeBuilder();
                 builder.SetDefaultDrawingAttributes(_attrs);
-                var stroke = builder.CreateStroke(_points);
+                var stroke = builder.CreateStroke(_figurePoints);
                 Strokes.Add(stroke);
-
-                System.Diagnostics.Debug.WriteLine($"strokes:{Strokes.Count} stroke segments:{stroke.GetRenderingSegments().Count} points:{_points.Count}");
+                Points.AddRange(_figurePoints);
             }
 
             public void SetFilledRegionDetermination(CanvasFilledRegionDetermination filledRegionDetermination) { }
@@ -72,9 +74,16 @@ namespace TextToInk
 
             // Private implementation
             //
-            private InkDrawingAttributes _attrs;
-            private readonly List<Point> _points = new();
-            private void AddPoint(Vector2 v) => _points.Add(v.ToPoint(precision: 2));
+            private readonly Action<Point, IEnumerable<Point>>? _pointCallback;
+            private readonly InkDrawingAttributes _attrs;
+            private readonly List<Point> _figurePoints = new();
+
+            private void AddPoint(Vector2 v)
+            {
+                var p = v.ToPoint(precision: 2);
+                _figurePoints.Add(p);
+                _pointCallback?.Invoke(p, _figurePoints);
+            }
         }
     }
 
