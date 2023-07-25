@@ -10,6 +10,10 @@ using Windows.UI.Input.Inking;
 
 namespace TextToInk
 {
+    /// <summary>
+    /// Converts text to ink strokes using a given font and font size.
+    /// Uses win2d geometry to create the strokes.
+    /// </summary>
     internal class TextToInk
     {
         public static (IEnumerable<InkStroke> strokes, IEnumerable<Point> points) CreateStrokes(string text, string fontFamily = "Ink Free", int fontSize = 36, InkDrawingAttributes? attrs = null,

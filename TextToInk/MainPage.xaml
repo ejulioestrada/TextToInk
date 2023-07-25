@@ -20,19 +20,35 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel Padding="5" Orientation="Horizontal" Grid.Row="0" Background="{ThemeResource AppBarBackgroundThemeBrush}">
-            <TextBox x:Name="_textBox" Header="Text:" Width="200" Text="Convert this text to ink"/>
             <TextBox x:Name="_fontNameBox" Header="Font:" Width="200" Text="Ink Free"/>
             <TextBox x:Name="_fontSizeBox" Header="Size:" Width="80" Text="48"/>
-            <Button Margin="6,20,6,0" Click="Process_Click">Covert to ink</Button>
-            <InkToolbar Margin="12,0" TargetInkCanvas="{x:Bind _inkCanvas}" />
+            <InkToolbar Margin="12,0" TargetInkCanvas="{x:Bind _inputCanvas}" />
+            <Button Margin="6,20,6,0" Click="Clear_Click">Clear</Button>
+            <Button Margin="6,20,6,0" Click="Process_Click" Background="Blue">Process</Button>
         </StackPanel>
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="1*"/>
-                <RowDefinition Height="3*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
             </Grid.RowDefinitions>
-            <InkCanvas Margin="10" x:Name="_inkCanvas"/>
-            <canvas:CanvasControl Margin="10" Grid.Row="1" x:Name="_canvas2d" Draw="OnDraw" CreateResources="OnCreateResources"/>
+            <Grid Grid.Row="0" BorderBrush="Gray" BorderThickness="1">
+                <TextBlock Text="Handwrite some words here and click the [Process] button:" Margin="5,2" Foreground="Blue"/>
+                <InkCanvas x:Name="_inputCanvas"/>
+            </Grid>
+            <Grid Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Background="AliceBlue">
+                <TextBlock Text="Recognized text:" Margin="5,2" Foreground="Purple"/>
+                <TextBlock x:Name="_textBlock" Margin="5" MinHeight="48"/>
+            </Grid>
+            <Grid Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Background="Beige">
+                <TextBlock Text="Generated strokes:" Margin="5,2" Foreground="Purple"/>
+                <InkCanvas x:Name="_outputCanvas"/>
+            </Grid>
+            <Grid Grid.Row="3" BorderBrush="Gray" BorderThickness="1" Background="Bisque">
+                <TextBlock Text="Generated points:" Margin="5,2" Foreground="Purple"/>
+                <canvas:CanvasControl x:Name="_canvas2d" Draw="OnDraw" CreateResources="OnCreateResources"/>
+            </Grid>
         </Grid>
     </Grid>
 </Page>
